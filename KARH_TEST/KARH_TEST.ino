@@ -23,7 +23,7 @@ void setup() {
   pinMode(button1,INPUT);
   digitalWrite(button1,HIGH);
   lcd.InitLCD();
-       X1=random(0,53);
+      // X1=random(0,53);???? problem???/
 
 }
 

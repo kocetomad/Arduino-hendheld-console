@@ -7,14 +7,16 @@ const int button1=3;
 extern unsigned char TinyFont[];
 extern unsigned char SmallFont[];
   int a=1 ;
-  int x=0;
+  int x=27;
   int spawn=0;
-  int Y1=0;
+  int Y1;
   int X1;
-  int Y2=-10;
+  int Y2;
   int X2;
-  int Y3=-20;
-  int X3;
+  int Y3;
+  int score=0;
+//  int X3;
+  bool over=false;
 void setup() {
     Serial.begin(9600);
 
@@ -23,55 +25,70 @@ void setup() {
   pinMode(button1,INPUT);
   digitalWrite(button1,HIGH);
   lcd.InitLCD();
-      // X1=random(0,53);???? problem???/
+   Y1=0;
+   Y2=0;
+
 
 }
 
 void loop() {
+ GAME1();
+}
+
+ void GAME1(){
   if(digitalRead(button1)==HIGH){
-    if (x<=14){
+    if (x<=52){
     x++; 
     a=2;
     }
-    Serial.println(x);
 
-    delay (10);
+    delay (20);
   }
   if(digitalRead(button)==HIGH){
-     if (x>=-13){
+     if (x>=2){
     x--; 
     a=2;
     Serial.println(x);
      }
-    delay (10);
+    delay (20);
   }
+    lcd.setFont(SmallFont);
+
+ if(over==false){
   //UI//
   lcd.clrScr();
   lcd.setFont(TinyFont);
-  lcd.drawBitmap(x,0,elsys,84,84);
+  lcd.drawRect(x, 40, x+2, 42);
+
+ // lcd.drawBitmap(x,0,elsys,84,84);
   lcd.print("score:", 59, 1);
   lcd.drawRect(0, 0, 83, 47);
   lcd.setFont(SmallFont);
-  lcd.printNumI(x, 58 ,7);
+  lcd.printNumI(Y1, 58 ,7);
   lcd.drawLine(56, 84, 56, 0); 
   //UI//
   //ROWS/1/
-  if(Y1==84){
+      Serial.println(spawn);
+
+  if(Y1==48){
     Y1=0;
     X1=random(0,53);
+    score++;
+
   }
   lcd.drawLine(0, Y1, X1, Y1); 
   lcd.drawLine(X1+3, Y1,57 , Y1); 
  
   
   //ROWS/2/
-  if(Y2==84){
-    Y2=10;
+  if(Y2==48){
+    Y2=0;
     X2=random(0,53);
+    score++;
   }
   lcd.drawLine(0, Y2, X2, Y2); 
   lcd.drawLine(X2+3, Y2,57 , Y2); 
- 
+ /*
   //ROWS/3/
   if(Y3==84){
     Y3=20;
@@ -79,14 +96,24 @@ void loop() {
   }
   lcd.drawLine(0, Y3, X3, Y3); 
   lcd.drawLine(X3+3, Y3,57 , Y3); 
-  if(spawn==3){
-  Y3++;
-  Y2++;
-  Y1++;
-  spawn=0;
+  */
+  //TOVA DVIJI BAROVETE
+  if(spawn==100 && spawn%3==0){
+      Y2++;
+
   }
-  
+  if(spawn%3==0){
+    Y1++;
+  }//
+  }
+  //lose cond
+  if(x<=X1 || x>=X1+3 && Y1>=40 && Y1 <=42){//|| x<=X2 || x>=X2+3 || x<=X3 || x>=X3+3 && Y1>=40 && Y1 <=42 || Y2>=40 && Y2 <=42 || Y3>=40 && Y3 <=42){
+       lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over=true;
+
+  }
   lcd.update();
-  delay(10);
+  delay(20);
   spawn++;
-}
+  }

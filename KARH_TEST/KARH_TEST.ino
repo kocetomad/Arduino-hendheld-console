@@ -1,5 +1,10 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_SPITFT.h>
+#include <Adafruit_SPITFT_Macros.h>
+#include <gfxfont.h>
+
 #include <LCD5110_Graph.h>
-LCD5110 lcd(8,9,10,12,11);
+LCD5110 lcd(11,10,9,8,12);
 extern uint8_t elsys [];
 
 const int button=2;
@@ -14,6 +19,8 @@ extern unsigned char SmallFont[];
   int Y2;
   int X2;
   int Y3;
+  int m=0;
+  bool ingame1=false;
   int score=0;
 //  int X3;
   bool over=false;
@@ -32,9 +39,56 @@ void setup() {
 }
 
 void loop() {
- GAME1();
+ if(ingame1){
+  GAME1();
+ }else{
+ MENU();
+ }
 }
 
+
+ void MENU(){
+   if(digitalRead(button)==HIGH){
+    switch(m){
+        case 0:ingame1=true;
+    }
+   }
+    if(digitalRead(button1)==HIGH){
+    if(m==2){
+      m=0;
+    }else{
+      m++;
+    
+    }
+
+    delay (200);
+  }
+  
+    lcd.clrScr();
+    lcd.setFont(SmallFont);
+    lcd.print("MENU", CENTER , 1);
+    lcd.drawLine(20, 9, 65, 9); 
+    if(m==0){
+    lcd.invertText(true);    
+   }
+    lcd.print("GAME 1", CENTER , 15);
+    lcd.invertText(false);    
+
+   if(m==1){
+    lcd.invertText(true);    
+   }
+    lcd.print("BACKLIGHT", CENTER , 25);
+    lcd.invertText(false);    
+  if(m==2){
+    lcd.invertText(true);    
+   }
+    lcd.print("CONTRAST", CENTER , 35);
+   lcd.invertText(false);    
+
+    lcd.update();
+    //delay (5);
+
+ }
  void GAME1(){
   if(digitalRead(button1)==HIGH){
     if (x<=52){
@@ -80,7 +134,7 @@ void loop() {
   lcd.drawLine(X1+3, Y1,57 , Y1); 
  
   
-  //ROWS/2/
+ /* //ROWS/2/
   if(Y2==48){
     Y2=0;
     X2=random(0,53);
@@ -88,7 +142,7 @@ void loop() {
   }
   lcd.drawLine(0, Y2, X2, Y2); 
   lcd.drawLine(X2+3, Y2,57 , Y2); 
- /*
+
   //ROWS/3/
   if(Y3==84){
     Y3=20;
@@ -98,20 +152,21 @@ void loop() {
   lcd.drawLine(X3+3, Y3,57 , Y3); 
   */
   //TOVA DVIJI BAROVETE
-  if(spawn==100 && spawn%3==0){
+ /* if(spawn==100 && spawn%3==0){
       Y2++;
 
-  }
+  }*/
   if(spawn%3==0){
     Y1++;
   }//
   }
   //lose cond
-  if(x<=X1 || x>=X1+3 && Y1>=40 && Y1 <=42){//|| x<=X2 || x>=X2+3 || x<=X3 || x>=X3+3 && Y1>=40 && Y1 <=42 || Y2>=40 && Y2 <=42 || Y3>=40 && Y3 <=42){
+  if(Y1>=40 && Y1 <=42 ){
+      if(x<X1 || x>=X1+2){//|| x<=X2 || x>=X2+3 || x<=X3 || x>=X3+3 && Y1>=40 && Y1 <=42 || Y2>=40 && Y2 <=42 || Y3>=40 && Y3 <=42){
+  
        lcd.clrScr();
         lcd.print("GAME OVER ", CENTER , 1);
-        over=true;
-
+        over=true;}
   }
   lcd.update();
   delay(20);

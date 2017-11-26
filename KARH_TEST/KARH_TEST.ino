@@ -6,9 +6,12 @@
 #include <LCD5110_Graph.h>
 LCD5110 lcd(11,10,9,8,12);
 extern uint8_t elsys [];
-
+extern uint8_t enm [];
+extern uint8_t plr [];
 const int button=2;
 const int button1=3;
+const int action=4;
+
 extern unsigned char TinyFont[];
 extern unsigned char SmallFont[];
   int a=1 ;
@@ -16,12 +19,19 @@ extern unsigned char SmallFont[];
   int spawn=0;
   int Y1;
   int X1;
-  int Y2;
-  int X2;
-  int Y3;
+  /*int Y2;
+  int Y3;*/
+  float X2=0;
   int m=0;
   bool ingame1=false;
+  bool ingame2=false;
+  int fire=0;
+  int fires[3]= {0,0,0};
   int score=0;
+  int dvijenie_na_shota_v_game_2 [3]= {0,0,0};
+  int shotpos1[3]= {0,0,0};
+  bool pressed=false;
+  
 //  int X3;
   bool over=false;
 void setup() {
@@ -33,27 +43,35 @@ void setup() {
   digitalWrite(button1,HIGH);
   lcd.InitLCD();
    Y1=0;
-   Y2=0;
+//   Y2=0;
 
 
 }
 
 void loop() {
- if(ingame1){
-  GAME1();
- }else{
- MENU();
- }
+ //if(ingame2){
+  GAME2();
+// }
+ //if(ingame1){
+ // GAME1();
+// }
+// if(ingame1==false && ingame2==false){
+ // MENU();
+ //}
+
 }
 
 
  void MENU(){
-   if(digitalRead(button)==HIGH){
+   if(digitalRead(button)==LOW){
     switch(m){
         case 0:ingame1=true;
+        break;
+        case 1:ingame2=true;
+        break;
     }
    }
-    if(digitalRead(button1)==HIGH){
+    if(digitalRead(button1)==LOW){
     if(m==2){
       m=0;
     }else{
@@ -61,7 +79,7 @@ void loop() {
     
     }
 
-    delay (200);
+    delay (300);
   }
   
     lcd.clrScr();
@@ -77,7 +95,7 @@ void loop() {
    if(m==1){
     lcd.invertText(true);    
    }
-    lcd.print("BACKLIGHT", CENTER , 25);
+    lcd.print("GAME 2", CENTER , 25);
     lcd.invertText(false);    
   if(m==2){
     lcd.invertText(true);    
@@ -90,21 +108,26 @@ void loop() {
 
  }
  void GAME1(){
-  if(digitalRead(button1)==HIGH){
+  if(digitalRead(button1)==LOW){
     if (x<=52){
     x++; 
     a=2;
     }
 
-    delay (20);
   }
-  if(digitalRead(button)==HIGH){
+  if(digitalRead(button1)==LOW){
+    if (x<=52){
+    x++; 
+    a=2;
+    }
+
+  }
+  if(digitalRead(button)==LOW){
      if (x>=2){
     x--; 
     a=2;
     Serial.println(x);
      }
-    delay (20);
   }
     lcd.setFont(SmallFont);
 
@@ -131,7 +154,7 @@ void loop() {
 
   }
   lcd.drawLine(0, Y1, X1, Y1); 
-  lcd.drawLine(X1+3, Y1,57 , Y1); 
+  lcd.drawLine(X1+4, Y1,57 , Y1); 
  
   
  /* //ROWS/2/
@@ -172,3 +195,91 @@ void loop() {
   delay(20);
   spawn++;
   }
+
+ void GAME2(){
+    if(digitalRead(button1)==LOW){
+    x++; 
+    }
+    if(digitalRead(action)==LOW){
+    if(pressed==false){
+     if (fires[2]!=1){
+      
+       fire++;
+      }
+      if (fire==1 && fires[2]!=1){
+       shotpos1[0]=x+7;
+       fires[0]=1;
+        }
+        if (fire==2 && fires[2]!=1){
+       shotpos1[1]=x+7;
+       fires[1]=1;
+        }
+        if (fire==3 && fires[2]!=1){
+       shotpos1[2]=x+7;
+       fires[2]=1;
+        }
+       pressed=true;
+     }
+    }else{
+      pressed=false;
+    }
+  if(digitalRead(button)==LOW){
+    x--; 
+     }
+    lcd.clrScr();
+   // lcd.drawBitmap(0,0,elsys,84,84);
+  
+    lcd.drawBitmap(x,40,plr,10,7);
+    if( X2<=10 && spawn%3==0){
+      X2++;
+    }
+    lcd.drawBitmap(30,X2,enm,10,8);
+    //WAT>>>!!!?
+      if (fires[0]==1){//TUKA SA STRELYA
+       lcd.drawLine(shotpos1[0], 42-dvijenie_na_shota_v_game_2[0],shotpos1[0] , 39-dvijenie_na_shota_v_game_2[0]);
+    }
+     if (fires[1]==1){//TUKA SA STRELYA
+       lcd.drawLine(shotpos1[1], 42-dvijenie_na_shota_v_game_2[1],shotpos1[1] , 39-dvijenie_na_shota_v_game_2[1]);
+    }
+     if (fires[2]==1){//TUKA SA STRELYA
+       lcd.drawLine(shotpos1[2], 42-dvijenie_na_shota_v_game_2[2],shotpos1[2] , 39-dvijenie_na_shota_v_game_2[2]);
+    }
+    lcd.setPixel(33, X2); 
+   
+    if (shotpos1[0]>=33 && shotpos1[0]<=37 && dvijenie_na_shota_v_game_2[0]>=X2+10){
+      X2=0;
+      dvijenie_na_shota_v_game_2[0]=0;
+      fires[0]=0;
+      fire--;
+    }
+    if (dvijenie_na_shota_v_game_2[0]==42){
+      dvijenie_na_shota_v_game_2[0]=0;
+      fires[0]=0;
+      fire--;
+
+    }else if(fires[0]==1){
+    dvijenie_na_shota_v_game_2[0]++;
+    }
+    if (dvijenie_na_shota_v_game_2[1]==42){
+      dvijenie_na_shota_v_game_2[1]=0;
+      fires[1]=0;
+      fire--;
+
+    }else if(fires[1]==1){
+    dvijenie_na_shota_v_game_2[1]++;
+    }
+    if (dvijenie_na_shota_v_game_2[2]==42){
+      dvijenie_na_shota_v_game_2[2]=0;
+      fires[2]=0;
+             fire=0;
+
+     // fire=0;
+    }else if(fires[2]==1){
+    dvijenie_na_shota_v_game_2[2]++;
+    }
+     lcd.update();
+    
+    delay(30);
+    spawn++;
+ }
+ 

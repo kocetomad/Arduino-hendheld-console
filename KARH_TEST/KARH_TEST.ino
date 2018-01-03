@@ -19,6 +19,7 @@ int x = 27;
 int spawn = 0;
 int Y1;
 int X1;
+bool klik=true;
 /*int Y2;
   int Y3;*/
 float X2 = 0;
@@ -47,11 +48,11 @@ void setup() {
 
 //CLOCK PART
   rtc.halt(false);
- // rtc.writeProtect(false);
+  rtc.writeProtect(true);
 
   // Make a new time object to set the date and time.
   // Sunday, September 22, 2013 at 01:38:50.
-  Time t(2017, 11, 28, 23, 55, 00, Time::kWednesday);
+  Time t(2018, 01, 02, 18, 10, 00, Time::kTuesday);
  rtc.writeProtect(true);
 
   // Set the time and date on the chip.
@@ -71,6 +72,7 @@ void loop() {
    if(ingame1==false && ingame2==false && inTIME==false){
    MENU();
   }
+  lcd.update();
 
 }
 
@@ -87,13 +89,14 @@ String dayAsString(const Time::Day day) {
   return "(unknown day)";
 }
 void MENU() {
-  if (digitalRead(button) == LOW) {
+  if (digitalRead(action) == LOW) {
     switch (m) {
       case 0: ingame1 = true;
         break;
       case 1: ingame2 = true;
         break;
       case 2: inTIME=true;
+        break;
     }
   }
   if (digitalRead(button1) == LOW) {
@@ -133,6 +136,13 @@ void MENU() {
 
 }
 void TIME(){
+   
+    if (digitalRead(button) == LOW) {score=0;ingame1==false ; ingame2==false ; inTIME==false; klik==false;loop();};
+   
+  lcd.update();
+
+
+  
     lcd.clrScr();
 
       Time t = rtc.time();
@@ -158,12 +168,9 @@ void TIME(){
 
 }
 void GAME1() {
-  if (digitalRead(button1) == LOW) {
-    if (x <= 52) {
-      x++;
-      a = 2;
-    }
-
+  if(over){
+    if (digitalRead(button) == LOW) {score=0;ingame1==false;loop();};
+  lcd.update();
   }
   if (digitalRead(button1) == LOW) {
     if (x <= 52) {
@@ -172,11 +179,12 @@ void GAME1() {
     }
 
   }
+  
+  
   if (digitalRead(button) == LOW) {
     if (x >= 2) {
       x--;
       a = 2;
-      Serial.println(x);
     }
   }
   lcd.setFont(SmallFont);
@@ -191,7 +199,7 @@ void GAME1() {
     lcd.print("score:", 59, 1);
     lcd.drawRect(0, 0, 83, 47);
     lcd.setFont(SmallFont);
-    lcd.printNumI(Y1, 58 , 7);
+    lcd.printNumI(score, 58 , 7);
     lcd.drawLine(56, 84, 56, 0);
     //UI//
     //ROWS/1/
@@ -230,7 +238,7 @@ void GAME1() {
 
       }*/
     if (spawn % 3 == 0) {
-      Y1++;
+      Y1+=2;
     }//
   }
   //lose cond

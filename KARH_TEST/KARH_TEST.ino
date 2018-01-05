@@ -11,7 +11,8 @@ extern uint8_t thirdframe [];
 extern uint8_t car [];
 extern uint8_t bad [];
 bool over2 = false;
-
+int timing=0;
+bool over1=false;
 
 extern uint8_t enm [];
 extern uint8_t plr [];
@@ -35,8 +36,21 @@ int x4 = 44;
 int y4 = 32;
 int x5 = 30;
 bool klik = true;
+int state=1;
+struct axis{
+  int x;
+  int y;
+};
+int stepp=0;
+
+  struct axis body[40]; 
+  struct axis body1[40]; 
+  struct axis pick;
 /*int Y2;
   int Y3;*/
+  bool snake=false;
+int n=5;
+
 float X2 = 0;
 int m = 0;
 bool ingame1 = false;
@@ -52,14 +66,19 @@ bool inTIME = false;
 bool over = false;
 void setup() {
   Serial.begin(9600);
-
+  for (int i=0;i<n;i++){
+    body[i].x=20-i;body[i].y=20;
+  }
   pinMode(button, INPUT);
   digitalWrite(button, HIGH);
   pinMode(button1, INPUT);
   digitalWrite(button1, HIGH);
   lcd.InitLCD();
   Y1 = 0;
+       pick.x=random(8,46);
+    pick.y=random(5,46);
   //   Y2=0;
+  
 
   //CLOCK PART
   rtc.halt(false);
@@ -84,7 +103,10 @@ void loop() {
   if (ingame1) {
     GAME1();
   }
-  if (ingame1 == false && ingame2 == false && inTIME == false) {
+  if(snake){
+    SNAKE();
+  }
+  if (ingame1 == false && ingame2 == false && inTIME == false && snake==false) {
     MENU();
   }
   lcd.update();
@@ -108,14 +130,16 @@ void MENU() {
     switch (m) {
       case 0: ingame1 = true;
         break;
-      case 1: ingame2 = true;
+      case 1: snake = true;
         break;
-      case 2: inTIME = true;
+      case 2: ingame2 = true;
+        break;
+      case 3: inTIME = true;
         break;
     }
   }
   if (digitalRead(button1) == LOW) {
-    if (m == 2) {
+    if (m == 3) {
       m = 0;
     } else {
       m++;
@@ -132,26 +156,145 @@ void MENU() {
   if (m == 0) {
     lcd.invertText(true);
   }
-  lcd.print("GAME 1", CENTER , 15);
+  lcd.print("DODGE", 6 , 15);
   lcd.invertText(false);
-
   if (m == 1) {
     lcd.invertText(true);
   }
-  lcd.print("GAME 2", CENTER , 25);
+  lcd.print("SNAKE", 48 , 15);
   lcd.invertText(false);
   if (m == 2) {
     lcd.invertText(true);
   }
-  lcd.print("TIME", CENTER , 35);
+  lcd.print("CARS", CENTER , 25);
+  lcd.invertText(false);
+  if (m == 3) {
+    lcd.invertText(true);
+  }
+  lcd.print("CLOCK", CENTER , 35);
   lcd.invertText(false);
 
   lcd.update();
   //delay (5);
 
 }
+void SNAKE(){
+          lcd.clrScr();
+
+   if(over1){
+    if (digitalRead(button1) == LOW) {score=0;snake==false;loop();};
+  lcd.update();
+  }
+  if(over1==false){
+   lcd.setFont(TinyFont);
+   lcd.print("score:", 59, 1);
+   lcd.drawRect(0, 0, 83, 47);
+   lcd.setFont(SmallFont);
+   lcd.printNumI(score, 58 , 7);
+   lcd.drawLine(56, 84, 56, 0);
+   lcd.setPixel(pick.x,pick.y);
+  }
+  for(int i=1;i<n;i++){
+    if(body[0].x==body[i].x && body[0].y==body[i].y){
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over1=true;
+            lcd.update();
+
+        
+    }
+  }
+    if(over1==false){
+
+  if (pick.x==body1[0].x && pick.y==body1[0].y){
+    n++;
+    score++;
+     pick.x=random(8,46);
+    pick.y=random(5,46);
+    if (n==50){
+      lcd.clrScr();
+        lcd.print("YOU WIN ", CENTER , 1);
+        over1=true;
+            lcd.update();
+
+    }
+  }
+  for(int i=0;i<n;i++){
+  lcd.setPixel(body[i].x,body[i].y);
+  }
+  for(int i=0;i<n;i++){
+  body1[i].x=body[i].x;
+  body1[i].y=body[i].y;
+  }
+  if(over1==false){
+   lcd.setFont(TinyFont);
+   lcd.print("score:", 59, 1);
+   lcd.drawRect(0, 0, 83, 47);
+   lcd.setFont(SmallFont);
+   lcd.printNumI(score, 58 , 7);
+   lcd.drawLine(56, 84, 56, 0);
+   lcd.setPixel(pick.x,pick.y);
+  }
+  if (digitalRead(button)==LOW){
+    if(state==4){
+      state=1;
+    }else{
+    state++;
+    }
+  }
+  
+  if (digitalRead(button1)==LOW){
+    if(state==1){
+      state=4;
+    }else{
+    state--;
+    }
+  }
+  
+  lcd.setPixel(body[0].x,body[0].y);
+  lcd.update();
+  
+    switch(state){
+      case 1:body[0].x++;
+      break;
+      case 2:body[0].y++;
+      break;
+      case 3:body[0].x--;
+      break;
+      case 4:body[0].y--;
+      break;
+    }
+ 
+    if(body[0].x==56){
+      body[0].x=1;
+    }
+    if(body[0].y==48){
+      body[0].y=1;
+    }
+    if(body[0].x==0){
+      body[0].x=56;
+    }
+    if(body[0].y==0){
+      body[0].y=48;
+    }
+
+  for(int i=0;i<n-1;i++){
+  body[i+1].x=body1[i].x;
+
+  body[i+1].y=body1[i].y;
+  }
+
+  delay(100);
+
+  
+   
+            lcd.update();
+  
+   
+    }
+}
 void CARS() {
-if (over2) {
+  if (over2) {
     lcd.clrScr();
 
     lcd.print("GAME OVER ", CENTER , 1);
@@ -162,8 +305,8 @@ if (over2) {
       loop();
     };
     lcd.update();
-  }else{
- // if (over2 == false) {
+  } else {
+    // if (over2 == false) {
 
     lcd.setFont(SmallFont);
 

@@ -1,17 +1,24 @@
 #include <DS1302.h>
 #include <stdio.h>
-#include <gfxfont.h>
 
 #include <LCD5110_Graph.h>
 LCD5110 lcd(11, 10, 9, 8, 12);
 DS1302 rtc(A5, A4, A3);
 extern uint8_t elsys [];
+extern uint8_t firstframe [];
+extern uint8_t secondframe [];
+extern uint8_t thirdframe [];
+extern uint8_t car [];
+extern uint8_t bad [];
+bool over2 = false;
+
+
 extern uint8_t enm [];
 extern uint8_t plr [];
 const int button = 2;
 const int button1 = 3;
 const int action = 4;
-bool check=true;
+bool check = true;
 extern unsigned char TinyFont[];
 extern unsigned char SmallFont[];
 int a = 1 ;
@@ -19,7 +26,15 @@ int x = 27;
 int spawn = 0;
 int Y1;
 int X1;
-bool klik=true;
+int score1 = 0;
+int x2 = 24;
+int y2 = 12;
+int x3 = 28;
+int y3 = 25;
+int x4 = 44;
+int y4 = 32;
+int x5 = 30;
+bool klik = true;
 /*int Y2;
   int Y3;*/
 float X2 = 0;
@@ -32,7 +47,7 @@ int score = 0;
 int dvijenie_na_shota_v_game_2 [3] = {0, 0, 0};
 int shotpos1[3] = {0, 0, 0};
 bool pressed = false;
-bool inTIME=false;
+bool inTIME = false;
 //  int X3;
 bool over = false;
 void setup() {
@@ -46,31 +61,31 @@ void setup() {
   Y1 = 0;
   //   Y2=0;
 
-//CLOCK PART
+  //CLOCK PART
   rtc.halt(false);
   rtc.writeProtect(true);
 
   // Make a new time object to set the date and time.
   // Sunday, September 22, 2013 at 01:38:50.
   Time t(2018, 01, 02, 18, 10, 00, Time::kTuesday);
- rtc.writeProtect(true);
+  rtc.writeProtect(true);
 
   // Set the time and date on the chip.
   rtc.time(t);
 }
 
 void loop() {
-  if(inTIME){
-  TIME();
+  if (inTIME) {
+    TIME();
   }
-  if(ingame2){
-  GAME2();
-   }
-  if(ingame1){
-   GAME1();
-   }
-   if(ingame1==false && ingame2==false && inTIME==false){
-   MENU();
+  if (ingame2) {
+    CARS();
+  }
+  if (ingame1) {
+    GAME1();
+  }
+  if (ingame1 == false && ingame2 == false && inTIME == false) {
+    MENU();
   }
   lcd.update();
 
@@ -89,13 +104,13 @@ String dayAsString(const Time::Day day) {
   return "(unknown day)";
 }
 void MENU() {
-  if (digitalRead(action) == LOW) {
+  if (digitalRead(button) == LOW) {
     switch (m) {
       case 0: ingame1 = true;
         break;
       case 1: ingame2 = true;
         break;
-      case 2: inTIME=true;
+      case 2: inTIME = true;
         break;
     }
   }
@@ -135,42 +150,309 @@ void MENU() {
   //delay (5);
 
 }
-void TIME(){
-   
-    if (digitalRead(button) == LOW) {score=0;ingame1==false ; ingame2==false ; inTIME==false; klik==false;loop();};
-   
+void CARS() {
+if (over2) {
+    lcd.clrScr();
+
+    lcd.print("GAME OVER ", CENTER , 1);
+
+    if (digitalRead(button1) == LOW) {
+      score = 0;
+      ingame2 == false;
+      loop();
+    };
+    lcd.update();
+  }else{
+ // if (over2 == false) {
+
+    lcd.setFont(SmallFont);
+
+    if (y4 > 48) {
+      y4 = 12;
+      if (random(1, 3) == 1) {
+        x5 = 30;
+      } else {
+        x5 = 50;
+      }
+    }
+
+
+    if (y2 > 48) {
+      y2 = 12;
+      if (random(1, 3) == 1) {
+        x3 = 28;
+      } else {
+        x3 = 44;
+      }
+    }
+    if (y3 > 48) {
+      y3 = 12;
+      if (random(1, 3) == 1) {
+        x4 = 28;
+      } else {
+        x4 = 44;
+      }
+    }
+    if (digitalRead(button) == LOW) {
+      x2 = 24;
+    }
+    if (digitalRead(button1) == LOW) {
+      x2 = 48;
+    }
+    lcd.drawBitmap(0, 0, thirdframe, 84, 48);
+    lcd.drawBitmap(x2, 37, car, 12, 8);
+    lcd.drawBitmap(x3, y2, bad, 12, 8);
+    lcd.drawBitmap(x4, y3, bad, 12, 8);
+    lcd.drawRect(x5, y4, x5 + 4, y4 + 4);
+
+    y2++;
+    y3++;
+    y4++;
+    lcd.printNumI(score1, 1, 13);
+
+    if (y2 >= 34 && y2 <= 44) {
+      if (x2 == 24 && x3 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x3 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+    if (y3 >= 34 && y3 <= 44) {
+      if (x2 == 24 && x4 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x4 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+
+    if (y4 >= 34 && y4 <= 44) {
+      if (x2 == 24 && x5 == 30) {
+        y4 = 12;
+        score1++;
+
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+      if (x2 == 48 && x5 == 50) {
+        y4 = 12;
+        score1++;
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+    }
+    delay(100);
+    lcd.update();
+    if (digitalRead(button) == LOW) {
+      x2 = 24;
+    }
+    if (digitalRead(button1) == LOW) {
+      x2 = 48;
+    }
+    lcd.drawBitmap(0, 0, secondframe, 84, 48);
+    lcd.drawBitmap(x2, 37, car, 12, 8);
+    lcd.drawBitmap(x3, y2, bad, 12, 8);
+    lcd.drawBitmap(x4, y3, bad, 12, 8);
+    lcd.drawRect(x5, y4,  x5 + 4, y4 + 4);
+
+
+    y2++;
+    y3++;
+    y4++;
+
+    if (y2 >= 34 && y2 <= 44) {
+      if (x2 == 24 && x3 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x3 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+    if (y3 >= 34 && y3 <= 44) {
+      if (x2 == 24 && x4 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x4 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+    if (y4 >= 34 && y4 <= 44) {
+      if (x2 == 24 && x5 == 30) {
+        y4 = 12;
+        score1++;
+
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+      if (x2 == 48 && x5 == 50) {
+        y4 = 12;
+        score1++;
+
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+    }  lcd.printNumI(score1, 1, 13);
+
+    delay(100);
+    lcd.update();
+    if (digitalRead(button) == LOW) {
+      x2 = 24;
+    }
+    if (digitalRead(button1) == LOW) {
+      x2 = 48;
+    }
+    lcd.drawBitmap(0, 0, firstframe, 84, 48);
+    lcd.drawBitmap(x2, 37, car, 12, 8);
+    lcd.drawBitmap(x3, y2, bad, 12, 8);
+    lcd.drawBitmap(x4, y3, bad, 12, 8);
+    lcd.drawRect(x5, y4,  x5 + 4, y4 + 4);
+
+
+
+    y2++;
+    y3++;
+    y4++;
+    lcd.printNumI(score1, 1, 13);
+
+    delay(100);
+    lcd.update();
+    y2++;
+    y3++;
+    y4++;
+    if (y2 >= 34 && y2 <= 44) {
+      if (x2 == 24 && x3 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x3 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+    if (y3 >= 34 && y3 <= 44) {
+      if (x2 == 24 && x4 == 28) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+      if (x2 == 48 && x4 == 44) {
+        lcd.clrScr();
+        lcd.print("GAME OVER ", CENTER , 1);
+        over2 = true;
+
+      }
+    }
+    if (y4 >= 34 && y4 <= 44) {
+      if (x2 == 24 && x5 == 30) {
+        y4 = 12;
+        score1++;
+
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+      if (x2 == 48 && x5 == 50) {
+        y4 = 12;
+        score1++;
+
+        if (random(1, 3) == 1) {
+          x5 = 30;
+        } else {
+          x5 = 50;
+        }
+      }
+    }
+    lcd.printNumI(score1, 1, 13);
+  }
+}
+void TIME() {
+
+  if (digitalRead(button1) == LOW) {
+    score = 0;
+    inTIME == false;
+    loop();
+  };
+  lcd.update();
   lcd.update();
 
 
-  
-    lcd.clrScr();
 
-      Time t = rtc.time();
+  lcd.clrScr();
+
+  Time t = rtc.time();
 
   // Name the day of the week.
   const String day = dayAsString(t.day);
 
   // Format the time and date and insert into the temporary buffer.
   char buf[50];
-    char tr[50];
+  char tr[50];
 
   snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d ",
            day.c_str(),
            t.yr, t.mon, t.date);
-            snprintf(tr, sizeof(tr), "%02d:%02d:%02d ",
+  snprintf(tr, sizeof(tr), "%02d:%02d:%02d ",
            t.hr, t.min, t.sec);
   lcd.setFont(TinyFont);
 
-  lcd.print(buf,CENTER,10);
-    lcd.print(tr,CENTER,20);
+  lcd.print(buf, CENTER, 10);
+  lcd.print(tr, CENTER, 20);
 
   lcd.update();
 
 }
 void GAME1() {
-  if(over){
-    if (digitalRead(button) == LOW) {score=0;ingame1==false;loop();};
-  lcd.update();
+  if (over) {
+    if (digitalRead(button1) == LOW) {
+      score = 0;
+      ingame1 == false;
+      loop();
+    };
+    lcd.update();
   }
   if (digitalRead(button1) == LOW) {
     if (x <= 52) {
@@ -179,8 +461,8 @@ void GAME1() {
     }
 
   }
-  
-  
+
+
   if (digitalRead(button) == LOW) {
     if (x >= 2) {
       x--;
@@ -238,7 +520,7 @@ void GAME1() {
 
       }*/
     if (spawn % 3 == 0) {
-      Y1+=2;
+      Y1 += 2;
     }//
   }
   //lose cond
@@ -255,102 +537,5 @@ void GAME1() {
   spawn++;
 }
 
-void GAME2() {
-  if (digitalRead(button1) == LOW) {
-    x++;
-  }
-  if (digitalRead(action) == LOW) {
-    if (pressed == false) {
-      if (fires[2] != 1) {
 
-        fire++;
-      }
-      if (fire == 1 && fires[2] != 1) {
-        shotpos1[0] = x + 7;
-        fires[0] = 1;
-      }
-      if (fire == 2 && fires[2] != 1) {
-        shotpos1[1] = x + 7;
-        fires[1] = 1;
-      }
-      if (fire == 3 && fires[2] != 1) {
-        shotpos1[2] = x + 7;
-        fires[2] = 1;
-      }
-      pressed = true;
-    }
-  } else {
-    pressed = false;
-  }
-  if (digitalRead(button) == LOW) {
-    x--;
-  }
-  lcd.clrScr();
-  // lcd.drawBitmap(0,0,elsys,84,84);
-
-  lcd.drawBitmap(x, 40, plr, 10, 7);
-  if ( X2 <= 10 && spawn % 3 == 0) {
-    X2++;
-  }
-  lcd.drawBitmap(30, X2, enm, 10, 8);
-  //WAT>>>!!!?
-  if (fires[0] == 1) { //TUKA SA STRELYA
-    lcd.drawLine(shotpos1[0], 42 - dvijenie_na_shota_v_game_2[0], shotpos1[0] , 39 - dvijenie_na_shota_v_game_2[0]);
-  }
-  if (fires[1] == 1) { //TUKA SA STRELYA
-    lcd.drawLine(shotpos1[1], 42 - dvijenie_na_shota_v_game_2[1], shotpos1[1] , 39 - dvijenie_na_shota_v_game_2[1]);
-  }
-  if (fires[2] == 1) { //TUKA SA STRELYA
-    lcd.drawLine(shotpos1[2], 42 - dvijenie_na_shota_v_game_2[2], shotpos1[2] , 39 - dvijenie_na_shota_v_game_2[2]);
-  }
-  lcd.setPixel(33, X2);
-
-  if (shotpos1[0] >= 33 && shotpos1[0] <= 37 && dvijenie_na_shota_v_game_2[0] >= X2 + 10) {
-    X2 = -10;
-    dvijenie_na_shota_v_game_2[0] = 0;
-    fires[0] = 0;
-    fire--;
-  }
-  if (dvijenie_na_shota_v_game_2[0] == 42) {
-    dvijenie_na_shota_v_game_2[0] = 0;
-    fires[0] = 0;
-    fire--;
-
-  } else if (fires[0] == 1) {
-    dvijenie_na_shota_v_game_2[0]++;
-  }
-  if (shotpos1[1] >= 33 && shotpos1[1] <= 37 && dvijenie_na_shota_v_game_2[1] >= X2 + 10) {
-    X2 = -10;
-    dvijenie_na_shota_v_game_2[1] = 0;
-    fires[1] = 0;
-    fire--;
-  }
-  if (dvijenie_na_shota_v_game_2[1] == 42) {
-    dvijenie_na_shota_v_game_2[1] = 0;
-    fires[1] = 0;
-    fire--;
-
-  } else if (fires[1] == 1) {
-    dvijenie_na_shota_v_game_2[1]++;
-  }
-  if (shotpos1[2] >= 33 && shotpos1[2] <= 37 && dvijenie_na_shota_v_game_2[2] >= X2 + 10) {
-    X2 = -10;
-    dvijenie_na_shota_v_game_2[2] = 0;
-    fires[2] = 0;
-    fire = 0;
-  }
-  if (dvijenie_na_shota_v_game_2[2] == 42) {
-    dvijenie_na_shota_v_game_2[2] = 0;
-    fires[2] = 0;
-    fire = 0;
-
-    // fire=0;
-  } else if (fires[2] == 1) {
-    dvijenie_na_shota_v_game_2[2]++;
-  }
-  lcd.update();
-
-  delay(30);
-  spawn++;
-}
 

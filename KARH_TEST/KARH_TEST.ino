@@ -11,8 +11,10 @@ extern uint8_t thirdframe [];
 extern uint8_t car [];
 extern uint8_t bad [];
 bool over2 = false;
-int timing=0;
-bool over1=false;
+bool over3 = false;
+
+int timing = 0;
+bool over1 = false;
 
 extern uint8_t enm [];
 extern uint8_t plr [];
@@ -36,20 +38,20 @@ int x4 = 44;
 int y4 = 32;
 int x5 = 30;
 bool klik = true;
-int state=1;
-struct axis{
+int state = 1;
+struct axis {
   int x;
   int y;
 };
-int stepp=0;
+int stepp = 0;
 
-  struct axis body[40]; 
-  struct axis body1[40]; 
-  struct axis pick;
+struct axis body[40];
+struct axis body1[40];
+struct axis pick;
 /*int Y2;
   int Y3;*/
-  bool snake=false;
-int n=5;
+bool snake = false;
+int n = 5;
 
 float X2 = 0;
 int m = 0;
@@ -64,10 +66,28 @@ bool pressed = false;
 bool inTIME = false;
 //  int X3;
 bool over = false;
+struct axis PongPlayer1;
+struct axis PongPlayer2;
+struct axis Ball;
+int ballstate;
+int xSpeed;
+int ySpeed;
+int AI = 0;
+int AI_modetimer = 0;
+int PLAYER1score;
+int PLAYER2score;
+bool inPong = false;
 void setup() {
+  ballstate = 0;
+  PongPlayer1.y = 22;
+  PongPlayer2.y = 22;
+  Ball.x = 40;
+  Ball.y = 20;
+  xSpeed = 1;
+  ySpeed = 1;
   Serial.begin(9600);
-  for (int i=0;i<n;i++){
-    body[i].x=20-i;body[i].y=20;
+  for (int i = 0; i < n; i++) {
+    body[i].x = 20 - i; body[i].y = 20;
   }
   pinMode(button, INPUT);
   digitalWrite(button, HIGH);
@@ -75,10 +95,10 @@ void setup() {
   digitalWrite(button1, HIGH);
   lcd.InitLCD();
   Y1 = 0;
-       pick.x=random(8,46);
-    pick.y=random(5,46);
+  pick.x = random(8, 46);
+  pick.y = random(5, 46);
   //   Y2=0;
-  
+
 
   //CLOCK PART
   rtc.halt(false);
@@ -103,10 +123,13 @@ void loop() {
   if (ingame1) {
     GAME1();
   }
-  if(snake){
+  if (snake) {
     SNAKE();
   }
-  if (ingame1 == false && ingame2 == false && inTIME == false && snake==false) {
+  if (inPong){
+    PONG();
+  }
+  if (ingame1 == false && ingame2 == false && inTIME == false && snake == false && inPong == false) {
     MENU();
   }
   lcd.update();
@@ -134,12 +157,14 @@ void MENU() {
         break;
       case 2: ingame2 = true;
         break;
-      case 3: inTIME = true;
+      case 4: inTIME = true;
+        break;
+      case 3: inPong = true;
         break;
     }
   }
   if (digitalRead(button1) == LOW) {
-    if (m == 3) {
+    if (m == 4) {
       m = 0;
     } else {
       m++;
@@ -153,145 +178,164 @@ void MENU() {
   lcd.setFont(SmallFont);
   lcd.print("MENU", CENTER , 1);
   lcd.drawLine(20, 9, 65, 9);
+
   if (m == 0) {
     lcd.invertText(true);
   }
   lcd.print("DODGE", 6 , 15);
   lcd.invertText(false);
+
+
   if (m == 1) {
     lcd.invertText(true);
   }
   lcd.print("SNAKE", 48 , 15);
   lcd.invertText(false);
+
+
   if (m == 2) {
     lcd.invertText(true);
   }
-  lcd.print("CARS", CENTER , 25);
+  lcd.print("CARS", 6 , 25);
   lcd.invertText(false);
-  if (m == 3) {
+
+
+  if (m == 4) {
     lcd.invertText(true);
   }
   lcd.print("CLOCK", CENTER , 35);
   lcd.invertText(false);
 
+
+  if (m == 3) {
+    lcd.invertText(true);
+  }
+  lcd.print("PONG", 48 , 25);
+  lcd.invertText(false);
   lcd.update();
   //delay (5);
 
 }
-void SNAKE(){
-          lcd.clrScr();
+void SNAKE() {
+  lcd.clrScr();
 
-   if(over1){
-    if (digitalRead(button1) == LOW) {score=0;snake==false;loop();};
-  lcd.update();
+  if (over1) {
+    if (digitalRead(button1) == LOW) {
+      score = 0;
+      snake == false;
+      loop();
+    };
+    lcd.update();
   }
-  if(over1==false){
-   lcd.setFont(TinyFont);
-   lcd.print("score:", 59, 1);
-   lcd.drawRect(0, 0, 83, 47);
-   lcd.setFont(SmallFont);
-   lcd.printNumI(score, 58 , 7);
-   lcd.drawLine(56, 84, 56, 0);
-   lcd.setPixel(pick.x,pick.y);
+  if (over1 == false) {
+    lcd.setFont(TinyFont);
+    lcd.print("score:", 59, 1);
+    lcd.drawRect(0, 0, 83, 47);
+    lcd.setFont(SmallFont);
+    lcd.printNumI(score, 58 , 7);
+    lcd.drawLine(56, 84, 56, 0);
+    lcd.setPixel(pick.x, pick.y);
   }
-  for(int i=1;i<n;i++){
-    if(body[0].x==body[i].x && body[0].y==body[i].y){
-        lcd.clrScr();
-        lcd.print("GAME OVER ", CENTER , 1);
-        over1=true;
-            lcd.update();
-
-        
-    }
-  }
-    if(over1==false){
-
-  if (pick.x==body1[0].x && pick.y==body1[0].y){
-    n++;
-    score++;
-     pick.x=random(8,46);
-    pick.y=random(5,46);
-    if (n==50){
+  for (int i = 1; i < n; i++) {
+    if (body[0].x == body[i].x && body[0].y == body[i].y) {
       lcd.clrScr();
+      lcd.print("GAME OVER ", CENTER , 1);
+      over1 = true;
+      lcd.update();
+
+
+    }
+  }
+  if (over1 == false) {
+
+    if (pick.x == body1[0].x && pick.y == body1[0].y) {
+      n++;
+      score++;
+      pick.x = random(8, 46);
+      pick.y = random(5, 46);
+      if (n == 50) {
+        lcd.clrScr();
         lcd.print("YOU WIN ", CENTER , 1);
-        over1=true;
-            lcd.update();
+        over1 = true;
+        lcd.update();
 
+      }
     }
-  }
-  for(int i=0;i<n;i++){
-  lcd.setPixel(body[i].x,body[i].y);
-  }
-  for(int i=0;i<n;i++){
-  body1[i].x=body[i].x;
-  body1[i].y=body[i].y;
-  }
-  if(over1==false){
-   lcd.setFont(TinyFont);
-   lcd.print("score:", 59, 1);
-   lcd.drawRect(0, 0, 83, 47);
-   lcd.setFont(SmallFont);
-   lcd.printNumI(score, 58 , 7);
-   lcd.drawLine(56, 84, 56, 0);
-   lcd.setPixel(pick.x,pick.y);
-  }
-  if (digitalRead(button)==LOW){
-    if(state==4){
-      state=1;
-    }else{
-    state++;
+    for (int i = 0; i < n; i++) {
+      lcd.setPixel(body[i].x, body[i].y);
     }
-  }
-  
-  if (digitalRead(button1)==LOW){
-    if(state==1){
-      state=4;
-    }else{
-    state--;
+    for (int i = 0; i < n; i++) {
+      body1[i].x = body[i].x;
+      body1[i].y = body[i].y;
     }
-  }
-  
-  lcd.setPixel(body[0].x,body[0].y);
-  lcd.update();
-  
-    switch(state){
-      case 1:body[0].x++;
-      break;
-      case 2:body[0].y++;
-      break;
-      case 3:body[0].x--;
-      break;
-      case 4:body[0].y--;
-      break;
+    if (over1 == false) {
+      lcd.setFont(TinyFont);
+      lcd.print("score:", 59, 1);
+      lcd.drawRect(0, 0, 83, 47);
+      lcd.setFont(SmallFont);
+      lcd.printNumI(score, 58 , 7);
+      lcd.drawLine(56, 84, 56, 0);
+      lcd.setPixel(pick.x, pick.y);
     }
- 
-    if(body[0].x==56){
-      body[0].x=1;
-    }
-    if(body[0].y==48){
-      body[0].y=1;
-    }
-    if(body[0].x==0){
-      body[0].x=56;
-    }
-    if(body[0].y==0){
-      body[0].y=48;
+    if (digitalRead(button) == LOW) {
+      delay (100);
+      if (state == 4) {
+        state = 1;
+      } else {
+        state++;
+      }
     }
 
-  for(int i=0;i<n-1;i++){
-  body[i+1].x=body1[i].x;
-
-  body[i+1].y=body1[i].y;
-  }
-
-  delay(100);
-
-  
-   
-            lcd.update();
-  
-   
+    if (digitalRead(button1) == LOW) {
+      delay (100);
+      if (state == 1) {
+        state = 4;
+      } else {
+        state--;
+      }
     }
+
+    lcd.setPixel(body[0].x, body[0].y);
+    lcd.update();
+
+    switch (state) {
+      case 1: body[0].x++;
+        break;
+      case 2: body[0].y++;
+        break;
+      case 3: body[0].x--;
+        break;
+      case 4: body[0].y--;
+        break;
+    }
+
+    if (body[0].x == 56) {
+      body[0].x = 1;
+    }
+    if (body[0].y == 48) {
+      body[0].y = 1;
+    }
+    if (body[0].x == 0) {
+      body[0].x = 56;
+    }
+    if (body[0].y == 0) {
+      body[0].y = 48;
+    }
+
+    for (int i = 0; i < n - 1; i++) {
+      body[i + 1].x = body1[i].x;
+
+      body[i + 1].y = body1[i].y;
+    }
+
+    delay(100);
+
+
+
+    lcd.update();
+
+
+  }
 }
 void CARS() {
   if (over2) {
@@ -336,10 +380,10 @@ void CARS() {
         x4 = 44;
       }
     }
-    if (digitalRead(button) == LOW) {
+    if (digitalRead(button1) == LOW) {
       x2 = 24;
     }
-    if (digitalRead(button1) == LOW) {
+    if (digitalRead(button) == LOW) {
       x2 = 48;
     }
     lcd.drawBitmap(0, 0, thirdframe, 84, 48);
@@ -405,10 +449,10 @@ void CARS() {
     }
     delay(100);
     lcd.update();
-    if (digitalRead(button) == LOW) {
+    if (digitalRead(button1) == LOW) {
       x2 = 24;
     }
-    if (digitalRead(button1) == LOW) {
+    if (digitalRead(button) == LOW) {
       x2 = 48;
     }
     lcd.drawBitmap(0, 0, secondframe, 84, 48);
@@ -475,10 +519,10 @@ void CARS() {
 
     delay(100);
     lcd.update();
-    if (digitalRead(button) == LOW) {
+    if (digitalRead(button1) == LOW) {
       x2 = 24;
     }
-    if (digitalRead(button1) == LOW) {
+    if (digitalRead(button) == LOW) {
       x2 = 48;
     }
     lcd.drawBitmap(0, 0, firstframe, 84, 48);
@@ -597,7 +641,7 @@ void GAME1() {
     };
     lcd.update();
   }
-  if (digitalRead(button1) == LOW) {
+  if (digitalRead(button) == LOW) {
     if (x <= 52) {
       x++;
       a = 2;
@@ -606,7 +650,7 @@ void GAME1() {
   }
 
 
-  if (digitalRead(button) == LOW) {
+  if (digitalRead(button1) == LOW) {
     if (x >= 2) {
       x--;
       a = 2;
@@ -638,30 +682,6 @@ void GAME1() {
     }
     lcd.drawLine(0, Y1, X1, Y1);
     lcd.drawLine(X1 + 4, Y1, 57 , Y1);
-
-
-    /* //ROWS/2/
-      if(Y2==48){
-       Y2=0;
-       X2=random(0,53);
-       score++;
-      }
-      lcd.drawLine(0, Y2, X2, Y2);
-      lcd.drawLine(X2+3, Y2,57 , Y2);
-
-      //ROWS/3/
-      if(Y3==84){
-       Y3=20;
-       X3=random(0,53);
-      }
-      lcd.drawLine(0, Y3, X3, Y3);
-      lcd.drawLine(X3+3, Y3,57 , Y3);
-    */
-    //TOVA DVIJI BAROVETE
-    /* if(spawn==100 && spawn%3==0){
-         Y2++;
-
-      }*/
     if (spawn % 3 == 0) {
       Y1 += 2;
     }//
@@ -680,5 +700,119 @@ void GAME1() {
   spawn++;
 }
 
+void PONG() {
+    lcd.clrScr();
+
+    if (digitalRead(button) == LOW) {
+      if (PongPlayer1.y >= 1) {
+        PongPlayer1.y--;
+      }
+
+    }
+
+    if (digitalRead(button1) == LOW) {
+      if (PongPlayer1.y + 7 <= 47) {
+
+        PongPlayer1.y++;
+      }
+
+    }
+
+    Serial.println(Ball.x);
+
+    //BALL
+    if (AI_modetimer == 0) {
+      AI = random(0, 6); //XDXD
+    }
+    //Ai mode 1
+    if (AI >= 0 && AI <= 3) {
+      if (Ball.y > 0 && Ball.y <= 41) {
+        PongPlayer2.y = Ball.y;
+      }
+      AI_modetimer++;
+      if (AI_modetimer >= 500) {
+        AI_modetimer = 0;
+      }
+    }
+    //Ai mode 2
+    if (AI >= 4) {
+      int dir = random(1, 100);
+      if (dir < 50) {
+        if (PongPlayer2.y > 1) {
+          PongPlayer2.y--;
+        }
+      }
+      if (dir > 50) {
+        if (PongPlayer2.y < 41) {
+          PongPlayer2.y++;
+        }
+      }
+      AI_modetimer++;
+      if (AI_modetimer >= 150) {
+        AI_modetimer = 0;
+      }
+    }
+
+
+
+    Ball.x += xSpeed;
+    Ball.y += ySpeed;
+    if (Ball.x <= 4 && Ball.y >= PongPlayer1.y - 2 && Ball.y <= PongPlayer1.y + 6) {
+      xSpeed *= -1;
+    }
+    if (Ball.x >= 77 && Ball.y >= PongPlayer2.y - 2 && Ball.y <= PongPlayer2.y + 6) {
+      xSpeed *= -1;
+    }
+    /* if (Ball.x>=77){
+        xSpeed*=-1;
+        ballstate=0;//collision
+      }*/
+
+    if (Ball.y >= 45) {
+      ySpeed *= -1;
+    }
+
+    if (Ball.y <= 1) {
+      ySpeed *= -1;
+    }
+
+
+    if (Ball.x < 0) {
+      Ball.x = 40;
+      Ball.y = 20;
+      PLAYER2score++;
+    }
+
+
+    if (Ball.x + 2 > 84) {
+      Ball.x = 40;
+      Ball.y = 20;
+      PLAYER1score++;
+    }
+
+
+
+    lcd.drawRect(Ball.x, Ball.y, Ball.x + 2, Ball.y + 2);
+    delay(50);
+
+    // put your main code here, to run repeatedly:
+    lcd.drawLine(4, PongPlayer1.y, 4, PongPlayer1.y + 7);
+    lcd.drawRect(79, PongPlayer2.y, 79, PongPlayer2.y + 6);
+    lcd.drawRect(0, 0, 83, 47);
+
+    for (int i = 0; i < 12; i++) {
+      lcd.drawLine(42, i * 4, 42, (i * 4) + 3);
+    }
+
+    lcd.setFont(TinyFont);
+
+    lcd.printNumI(PLAYER1score, 22, 3);
+    lcd.printNumI(PLAYER2score, 62, 3);
+
+    lcd.update();
+
+
+  
+}
 
 
